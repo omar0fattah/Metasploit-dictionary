@@ -1164,3 +1164,311 @@ background
 
 
 
+# 6. Database Commands
+
+### Why Use the Database?
+
+- Metasploit's database stores scan results, hosts, services, credentials, and vulnerabilities. Instead of remembering IP addresses and open ports, you query the database.
+
+**Benefits:**
+- Store multiple scan results permanently
+- Track hosts across different attacks
+- Avoid scanning the same target twice
+- Generate reports from stored data
+- Share data between modules
+
+---
+
+### Starting the Database
+
+- Metasploit uses PostgreSQL. Most penetration testing distributions (Kali, Parrot) have it pre-installed.
+
+**Start PostgreSQL service:**
+```bash
+sudo systemctl start postgresql
+```
+
+- **Start Metasploit with database:**
+
+```bash
+msfconsole -d
+```
+
+- **Check database status from inside msfconsole:**
+
+```bash
+db_status
+```
+
+- Expected output:
+```bash
+  [*] Connected to msf. Connected to postgresql database
+```
+
+
+## Workspace Management
+
+- Workspaces isolate different projects or targets.
+
+|Command| Purpose|
+|----|----|
+|workspace| List all workspaces (current one marked with *)|
+|workspace [name]| Create or switch to a workspace|
+|workspace -a [name]| Add (create) a new workspace|
+|workspace -d [name]| Delete a workspace|
+|workspace -r [old] [new] |Rename a workspace|
+|workspace -h| Show help|
+
+### Example workflow:
+
+
+- Create workspace for a specific target
+```bash
+workspace -a TargetCorp
+```
+- Verify you're in it
+workspace
+```bash
+[*] default
+[*] TargetCorp
+```
+- Do your scans...
+
+- Switch back to default:
+workspace default
+
+
+## Importing Scan Results
+
+- You can import results from other tools directly into the database.
+
+|Command| Purpose|
+|----|----|
+|db_import [file] |Import scan results|
+|db_import -h |Show supported file formats|
+
+- **Supported formats:**
+
+- Nmap XML (-oX)
+- Nessus (NBE and XML)
+- OpenVAS XML
+- Nexpose XML
+- Qualys XML
+- Nikto CSV
+- and many others
+
+### Example: Import an Nmap scan
+
+
+- From outside msfconsole
+```bash
+nmap -sV -oX scan.xml 192.168.1.0/24
+```
+
+
+- Inside msfconsole
+```bash
+db_import /path/to/scan.xml
+```
+
+
+## Hosts Management
+
+|Command |Purpose|
+|----|----|
+|hosts |List all hosts|
+|hosts -d [ip]| Delete a host|
+|hosts -c [columns]| Show specific columns|
+|hosts -R |Set RHOSTS to all discovered hosts|
+
+- **Example: Show only IP and OS**
+
+```bash
+hosts -c address,os_name
+```
+
+- **Example: Set RHOSTS to all discovered hosts**
+
+```bash
+hosts -R
+RHOSTS => 192.168.1.10 192.168.1.11 192.168.1.12
+```
+
+
+## Services Management
+
+|Command |Purpose|
+|----|----|
+|services| List all services|
+|services -p [port]| List services on specific port|
+|services -r [protocol]| List services by protocol (tcp/udp)|
+|services -u| List only running services|
+|services -d [ip] |Delete services for a host|
+
+- **Example: Find all web servers**
+
+```bash
+services -p 80 -p 443 -p 8080
+```
+
+- **Example: Show SMB services (port 445)**
+
+```bash
+services -p 445
+```
+
+
+## Credentials Management
+
+|Command| Purpose|
+|----|----|
+|creds |List all credentials|
+|creds -a| Add a credential|
+|creds -d| Delete credentials|
+|creds -h |Show help|
+
+- **Example: Add a discovered credential**
+
+```bash
+creds add user:administrator pass:password123 host:192.168.1.10
+```
+
+- **Example: List stored credentials**
+
+```bash
+creds
+```
+
+
+## Vulnerabilities Management
+
+|Command |Purpose|
+|----|----|
+|vulns| List all vulnerabilities|
+|vulns -d |Delete vulnerabilities|
+|vulns -h| Show help|
+
+- When you run check on an exploit and it confirms vulnerability, Metasploit automatically adds it to the vulns table.
+
+
+## Loot Management
+
+- Loot is data collected during post-exploitation (hashes, screenshots, downloaded files).
+
+|Command |Purpose|
+|----|----|
+|loot |List all loot|
+|loot -d |Delete loot|
+|loot -h |Show help|
+
+
+## Notes Management
+
+- Add custom notes to hosts.
+
+|Command |Purpose|
+|----|----|
+|notes| List all notes|
+|notes -a [text]| Add a note to current host|
+|notes -d |Delete notes|
+
+- **Example: Add a note**
+
+```bash
+notes -a "This host runs an outdated Apache 2.2"
+```
+
+
+## Reporting Commands
+
+- Generate reports from database contents.
+
+|Command |Format| Purpose|
+|----|----|----|
+|report| HTML |Generate HTML report|
+|report XML| Generate XML report|
+|report CSV |Generate CSV report|
+
+- **Example: Generate HTML report**
+
+```bash
+report -f html -o /tmp/report.html
+```
+
+
+## Database Maintenance
+
+|Command| Purpose|
+|----|----|
+|db_connect [name]| Connect to a database|
+|db_disconnect| Disconnect from database|
+|db_remove [name]| Remove a database|
+|db_rebuild_cache| Rebuild module cache|
+
+
+## Real-World Database Workflow
+
+
+- Start PostgreSQL and msfconsole with database
+```bash
+sudo systemctl start postgresql
+msfconsole -d
+```
+- Create a workspace for your target
+```bash
+workspace -a TargetCorp
+```
+- Import an Nmap scan
+```bash
+db_import /home/user/nmap_scan.xml
+```
+- List discovered hosts
+```bash
+hosts
+```
+- List services (look for interesting ports)
+```bash
+services -p 80 -p 443 -p 445 -p 3306
+```
+- Set RHOSTS to all discovered hosts
+```bash
+hosts -R
+```
+- Find exploits for discovered services
+```bash
+search type:exploit platform:windows name:smb
+```
+- After exploitation, add credentials
+```bash
+creds add user:Administrator pass:P@ssw0rd host:192.168.1.10
+```
+- Generate a report
+```bash
+report -f html -o /tmp/TargetCorp_report.html
+```
+- Save your work
+```bash
+workspace -a TargetCorp_COMPLETED
+```
+
+
+## Common Database Commands Cheat Sheet
+
+|Task| Command|
+|----|----|
+|Check connection| db_status|
+|Create workspace| workspace -a [name]|
+|Switch workspace| workspace [name]|
+|List workspaces| workspace|
+|Import scan| db_import [file]|
+|List hosts |hosts|
+|List services |services|
+|Set RHOSTS from hosts| hosts -R|
+|List credentials| creds|
+|List vulnerabilities| vulns|
+|Generate report| report -f html -o [file]|
+
+
+
+
+
