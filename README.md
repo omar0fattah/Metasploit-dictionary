@@ -313,7 +313,7 @@ An exploit is a module that delivers a payload to a vulnerable target. It takes 
 
 When you search, you'll see results like this:
 
-```text
+
 msf6 > search eternalblue
 
 Matching Modules
