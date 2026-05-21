@@ -309,27 +309,25 @@ An exploit is a module that delivers a payload to a vulnerable target. It takes 
 
 ### Understanding Search Results
 
-When you search, you'll see results like this:
+When you search, you'll see results like this example:
 
+`msf6 > search eternalblue`
 
-msf6 > search eternalblue
+**Matching Modules**
 
-Matching Modules
-================
-   #  Name                                           Rank     Check
-   -  ----                                           ----     -----
-   0  exploit/windows/smb/ms17_010_eternalblue      average  Yes
-   1  auxiliary/admin/smb/ms17_010_eternalblue      normal   No
-   2  exploit/windows/smb/ms17_010_psexec           normal   Yes
+| Number | Name   |  Rank    | Check|
+|--- | ----    | ----    | -----|
+|0  |exploit/windows/smb/ms17_010_eternalblue   | average | Yes|
+|1  |auxiliary/admin/smb/ms17_010_eternalblue  |    normal  | No|
+|2 | exploit/windows/smb/ms17_010_psexec  |         normal  | Yes|
 
-What each column means:
+**What each column means:**
+- **#** = Index number (use `use 0` to select it)
+- **Name** = Full module path
+- **Rank** = Reliability (excellent, great, good, normal, average, low, manual)
+- **Check** = Whether `check` command works on this module
 
-· # = Index number (use use 0 to select it)
-· Name = Full module path
-· Rank = Reliability (see table below)
-· Check = Whether check command works on this module
-
-Exploit Ranks (From Best to Worst)
+### Exploit Ranks (From Best to Worst)
 
 Rank Meaning
 excellent Works every time, no crashes
