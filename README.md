@@ -342,7 +342,7 @@ manual Requires manual configuration
 
 Always choose the highest rank available for your target using an exploit.
 
-##Step-by-step workflow:
+## Step-by-step workflow:
 - Select an exploit
 use exploit/windows/smb/ms17_010_eternalblue
 
@@ -375,23 +375,25 @@ check
 - Run the exploit
 run
 
-Useful module commands:
+## Useful module commands:
 
-Command Purpose
-back Exit current module without running it
-info Show detailed information about the module
-show options Show required and optional parameters
-show advanced Show advanced options (timeouts, etc.)
-show missing Show only options that are not set
+ |Command |Purpose|
+|----|----|
+ |back| Exit current module without running it|
+|info| Show detailed information about the module|
+  |show options| Show required and optional parameters|
+|show advanced| Show advanced options (timeouts, etc.)|
+|show missing| Show only options that are not set|
 
-Setting Parameters:
+## Setting Parameters:
 
-Command Purpose Example
-set [PARAM] [value] Set a parameter for current module set RHOSTS 192.168.1.10
-setg [PARAM] [value] Set globally (persists across modules) setg LHOST 192.168.1.5
-unset [PARAM] Remove a parameter setting unset RHOSTS
-unset all Remove all parameter settings unset all
-show global Show all global variables show global
+|Command |Purpose |Example|
+|---|---|-----|
+|set [PARAM] [value] |Set a parameter for current module| set RHOSTS 192.168.1.10|
+| setg [PARAM] [value] |Set globally (persists across modules)| setg LHOST 192.168.1.5|
+|unset [PARAM] |Remove a parameter setting |unset RHOSTS|
+|unset all| Remove all parameter |settings unset all|
+|Show global| Show all global variables |show global|
 
 Why use global variables? If you're testing multiple exploits on the same target, setg RHOSTS keeps your target IP across all modules. You set it once and forget it.
 
