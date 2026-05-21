@@ -140,7 +140,7 @@ A metasploit dictionary from beginner level the advanced level including most of
 
 ## First Steps Workflow (Example)
 
-```bash
+
 msfconsole -d           # Start Metasploit with database support
 workspace target1       # Create a new workspace
 search eternalblue      # Search for an exploit
