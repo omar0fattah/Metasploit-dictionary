@@ -395,3 +395,29 @@ run
 
 Why use global variables? If you're testing multiple exploits on the same target, setg RHOSTS keeps your target IP across all modules. You set it once and forget it.
 
+## Common Exploit Parameters:
+
+|Parameter| Purpose |Typical Value|
+|----|----|----|
+|RHOSTS| Target IP address or range| 192.168.1.10|
+|RPORT |Target port| 445, 80, 443|
+|LHOST |Your IP (reverse shell listener)| 192.168.1.5|
+|LPORT |Your port (reverse shell listener) |4444|
+|SSL |Use SSL/TLS| true or false|
+|VERBOSE| Show detailed output| true or false|
+
+## Remote vs. Local Exploits:
+
+|Type |Description| When to Use| Example|
+|----|----|----|----|
+|Remote exploit| Sent over network to a service |Target has a vulnerable network service| EternalBlue (SMB)|
+|Local exploit| Run after you already have a shell |You have low privilege shell, need admin| Windows local privilege escalation|
+
+### Local exploit example:
+
+-After getting a basic shell:
+'''bash
+use exploit/windows/local/ms16_032_secondary_logon_handle
+set SESSION 1
+run
+'''
