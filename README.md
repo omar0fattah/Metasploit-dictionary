@@ -34,7 +34,7 @@ A metasploit dictionary from beginner level the advanced level including most of
 
 
 
-## 1. Metasploit Fundamentals
+# 1. Metasploit Fundamentals
 
 ### Starting and Exiting
 
@@ -155,7 +155,7 @@ A metasploit dictionary from beginner level the advanced level including most of
 
 
 
-## 2. Payloads
+# 2. Payloads
 
 ### Understanding Payloads
 
@@ -275,7 +275,7 @@ run
 
 
 
-## 3. Exploits
+# 3. Exploits
 
 ### What Is an Exploit?
 
@@ -547,5 +547,316 @@ run
 |8. Test vulnerability |   → check|
 |9. Run exploit     |      → run|
 |10. Interact with session| → sessions -i [ID]|
+
+
+
+# 4. Auxiliary Modules
+
+### What Are Auxiliary Modules?
+
+Auxiliary modules are **not exploits**. They don't deliver payloads. Instead, they perform supporting tasks:
+- Scanning networks
+- Enumerating services
+- Fuzzing for vulnerabilities
+- Brute-forcing credentials
+- Crawling websites
+- Gathering information
+
+Think of them as your **reconnaissance and support tools** inside Metasploit.
+
+---
+
+### Finding Auxiliary Modules
+
+| Command | Purpose |
+|---------|---------|
+| `show auxiliary` | Show all auxiliary modules |
+| `search type:auxiliary` | Search for auxiliary modules |
+| `search name:scanner` | Find scanner modules |
+| `search name:brute` | Find brute-force modules |
+| `search name:enum` | Find enumeration modules |
+
+**Search examples:**
+- `search type:auxiliary name:smb` → Find SMB auxiliary modules
+- `search type:auxiliary name:mysql` → Find MySQL auxiliary modules
+- `search type:auxiliary name:portscan` → Find port scanners
+
+---
+
+### Types of Auxiliary Modules
+
+| Category | Purpose | Example Module |
+|----------|---------|----------------|
+| **scanner** | Network and service scanning | `scanner/portscan/tcp` |
+| **admin** | Administer services (brute force, etc.) | `admin/smb/ms17_010_eternalblue` |
+| **fuzzer** | Send malformed data to find bugs | `fuzzer/http/http_form` |
+| **gather** | Collect information (emails, files, etc.) | `gather/email_harvester` |
+| **sniffer** | Capture network traffic | `sniffer/psnuffle` |
+| **dos** | Denial of service (use carefully) | `dos/http/slowloris` |
+
+---
+
+### Using an Auxiliary Module
+
+- The workflow is similar to exploits, but without payloads.
+
+
+- Select an auxiliary module
+use auxiliary/scanner/portscan/tcp
+
+- Show required options
+show options
+
+- Set parameters
+set RHOSTS 192.168.1.0/24
+set RPORT 1-1000
+set THREADS 10
+
+- Run the module (no payload, no session)
+run
+
+
+## The scanner module pattern 
+
+- Most scanner modules have common options:
+
+|Parameter| Purpose |Example|
+|----|----|----|
+|RHOSTS| Target IP or range |192.168.1.0/24, 192.168.1.10|
+|RPORT |Target port| 80, 445, 3306|
+|THREADS| Number of parallel threads| 10 (higher = faster, noisier)|
+|VERBOSE |Show detailed output| true or false|
+
+
+## Useful Auxiliary Modules
+
+- Port Scanners
+
+|Module| Purpose|
+|----|----|
+|auxiliary/scanner/portscan/tcp| TCP port scanner|
+|auxiliary/scanner/portscan/syn| SYN port scanner (faster)|
+|auxiliary/scanner/portscan/xmas |XMAS port scanner (stealth)|
+|auxiliary/scanner/portscan/ack| ACK port scanner (firewall mapping)|
+
+- Example: TCP port scan
+
+```bash
+use auxiliary/scanner/portscan/tcp
+set RHOSTS 192.168.1.10
+set PORTS 1-1000
+set THREADS 10
+run
+```
+
+
+## SMB (Windows) Enumeration
+
+|Module |Purpose|
+|auxiliary/scanner/smb/smb_version |Detect SMB version|
+|auxiliary/scanner/smb/smb_enumusers |Enumerate users|
+|auxiliary/scanner/smb/smb_enumshares |Enumerate shared folders|
+|auxiliary/scanner/smb/smb_login| Brute-force SMB passwords|
+|auxiliary/scanner/smb/smb_ms17_010 |Check for EternalBlue vulnerability|
+
+### Example: Enumerate SMB users
+
+```bash
+use auxiliary/scanner/smb/smb_enumusers
+set RHOSTS 192.168.1.10
+run
+```
+
+### Example: Check for EternalBlue
+
+```bash
+use auxiliary/scanner/smb/smb_ms17_010
+set RHOSTS 192.168.1.0/24
+set THREADS 10
+run
+```
+
+
+## HTTP (Web) Enumeration
+
+|Module |Purpose|
+|----|----|
+|auxiliary/scanner/http/http_version| Detect web server version|
+|auxiliary/scanner/http/dir_scanner| Directory brute-forcing|
+|auxiliary/scanner/http/files_dir File| enumeration|
+|auxiliary/scanner/http/robots_txt |Check for robots.txt|
+|auxiliary/scanner/http/http_login |Brute-force web logins|
+
+### Example: Directory scanner
+
+```bash
+use auxiliary/scanner/http/dir_scanner
+set RHOSTS 192.168.1.10
+set RPORT 80
+set THREADS 10
+run
+```
+
+
+## Database Enumeration
+
+|Module |Purpose|
+|----|----|
+|auxiliary/scanner/mysql/mysql_version |Detect MySQL version|
+|auxiliary/scanner/mysql/mysql_login |Brute-force MySQL|
+|auxiliary/scanner/mysql/mysql_enum |Enumerate MySQL databases|
+|auxiliary/scanner/postgres/postgres_version |Detect PostgreSQL version|
+|auxiliary/scanner/postgres/postgres_login| Brute-force PostgreSQL|
+
+### Example: MySQL login bruteforce
+
+```bash
+use auxiliary/scanner/mysql/mysql_login
+set RHOSTS 192.168.1.10
+set USERNAME root
+set PASS_FILE /usr/share/wordlists/fasttrack.txt
+run
+```
+
+
+## SSH Enumeration
+
+|Module| Purpose|
+|----|----|
+|auxiliary/scanner/ssh/ssh_version| Detect SSH version|
+|auxiliary/scanner/ssh/ssh_login |Brute-force SSH passwords|
+|auxiliary/scanner/ssh/ssh_enumusers |Enumerate valid SSH usernames|
+
+### Example: SSH brute force
+
+```bash
+use auxiliary/scanner/ssh/ssh_login
+set RHOSTS 192.168.1.10
+set USER_FILE /usr/share/wordlists/users.txt
+set PASS_FILE /usr/share/wordlists/passwords.txt
+run
+```
+
+
+## FTP Enumeration
+
+|Module| Purpose|
+|auxiliary/scanner/ftp/ftp_version| Detect FTP version|
+|auxiliary/scanner/ftp/anonymous |Check for anonymous login|
+|auxiliary/scanner/ftp/ftp_login |Brute-force FTP|
+
+### Example: Check anonymous FTP
+
+```bash
+use auxiliary/scanner/ftp/anonymous
+set RHOSTS 192.168.1.10
+run
+```
+
+
+## SNMP Enumeration
+
+|Module| Purpose|
+|----|----|
+|auxiliary/scanner/snmp/snmp_enum |Enumerate SNMP information|
+|auxiliary/scanner/snmp/snmp_login |Brute-force SNMP community strings|
+
+### Example: SNMP enumeration
+
+```bash
+use auxiliary/scanner/snmp/snmp_enum
+set RHOSTS 192.168.1.10
+set COMMUNITY public
+run
+```
+
+
+## Reconnaissance and Discovery
+
+|Module| Purpose|
+|----|----|
+|auxiliary/scanner/discovery/arp_sweep |ARP sweep for local network|
+|auxiliary/scanner/discovery/udp_sweep |UDP sweep|
+|auxiliary/scanner/dns/dns_zone_transfer |Attempt DNS zone transfer|
+
+### Example: ARP sweep (local network, needs root)
+
+```bash
+use auxiliary/scanner/discovery/arp_sweep
+set RHOSTS 192.168.1.0/24
+set THREADS 10
+run
+```
+
+
+## Web Application Fuzzing
+
+|Module| Purpose|
+|----|----|
+|auxiliary/fuzzer/http/http_form |Fuzz HTTP form fields|
+|auxiliary/fuzzer/http/http_get| Fuzz HTTP GET parameters|
+|auxiliary/fuzzer/http/http_post |Fuzz HTTP POST parameters|
+
+
+## Denial of Service
+
+|Module| Purpose|
+|----|----|
+|auxiliary/dos/http/slowloris |Slowloris DoS attack|
+|auxiliary/dos/tcp/syn_flood| SYN flood attack|
+
+- Warning: DoS modules can crash targets. Only use on systems you own or have written permission to test.
+
+
+ ## Real-World Auxiliary Workflow Example
+
+- **Scenario: You've joined a new network (192.168.1.0/24). You want to discover hosts, find open ports, and identify services:**
+
+
+msfconsole -q
+
+- Step 1: ARP sweep to find live hosts
+use auxiliary/scanner/discovery/arp_sweep
+set RHOSTS 192.168.1.0/24
+set THREADS 10
+run
+
+- Step 2: TCP port scan on found hosts
+use auxiliary/scanner/portscan/tcp
+set RHOSTS 192.168.1.0/24
+set PORTS 1-1000
+set THREADS 10
+run
+
+- Step 3: Identify SMB versions on hosts with port 445 open
+use auxiliary/scanner/smb/smb_version
+set RHOSTS 192.168.1.0/24
+run
+
+- Step 4: Check for EternalBlue vulnerability
+use auxiliary/scanner/smb/smb_ms17_010
+set RHOSTS 192.168.1.0/24
+run
+
+- Step 5: Enumerate web servers on hosts with port 80 open
+use auxiliary/scanner/http/http_version
+set RHOSTS 192.168.1.0/24
+set RPORT 80
+run
+
+
+## Summary: Auxiliary Module Workflow
+
+|Step|Code|
+|----|----|
+|1. Find auxiliary module  |   → search type:auxiliary name:[keyword]|
+|2. Select module       |      → use [module/path]|
+|3. Show options       |       → show options|
+|4. Set parameters       |     → set RHOSTS, set THREADS, etc.|
+|5. Run the module       |     → run|
+|6. Analyze output     |       → Look for interesting results|
+|7. Move to next module   |    → Use findings to select next scan|
+
+
 
 
