@@ -1875,9 +1875,10 @@ set LPORT 4444
 set ExitOnSession false
 ```
 - Run as background job
-```
+
+```bash
 run -j
-```bash 
+```
 - Verify it's running
 ```bash 
 jobs
