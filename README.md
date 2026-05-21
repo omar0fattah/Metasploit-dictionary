@@ -476,7 +476,7 @@ run
 
 |Symptom| Likely Cause |Solution|
 |----|----|----|
-|Exploit completed, but no session| |Payload didn't connect| Check LHOST, LPORT, firewall rules|
+|Exploit completed, but no session| Payload didn't connect| Check LHOST, LPORT, firewall rules|
 |"Connection refused" |Port is closed or filtered| Try different RPORT|
 |"Target is not vulnerable" |Patch has been applied| Find a different exploit|
 |"Exploit crashed the target" |Target unstable| Choose a different exploit or target type|
