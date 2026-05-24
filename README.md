@@ -2824,3 +2824,23 @@ nc -zv 192.168.1.5 4444
 |Connection drops	|Use reverse_https|
 
 [🔝 Back to Top](#top)
+
+
+
+---
+
+## ✅ Completion Note
+
+This document covers the essential Metasploit commands and workflows. Not every obscure module or niche flag is included—but what's here is what you'll actually use.
+
+The manual is complete. No AI wrote it. No copy-paste shortcuts. Every command was typed by hand, tested, and organized for quick reference.
+
+If you're reading this, you now have a field guide built from the ground up. Use it. Break things (your own). Learn. Then build something better.
+
+**— Omar Fattah**
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
