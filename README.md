@@ -1386,8 +1386,8 @@ notes -a "This host runs an outdated Apache 2.2"
 |Command |Format| Purpose|
 |----|----|----|
 |report| HTML |Generate HTML report|
-|report XML| Generate XML report|
-|report CSV |Generate CSV report|
+|report |XML| Generate XML report|
+|report |CSV |Generate CSV report|
 
 - **Example: Generate HTML report**
 
