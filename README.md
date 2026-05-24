@@ -2742,6 +2742,7 @@ nc -zv 192.168.1.5 4444
 
 ## 8. Common Error Messages
 |Error|	Meaning	|Solution|
+|----|----|-----|
 |Could not connect to database|	PostgreSQL not running|	sudo systemctl start postgresql|
 |Command not found: [payload]	|Typo or wrong context|	You must be in use exploit/multi/handler before setting payload|
 |Session 1 is not a Meterpreter session|	Wrong session type	|Some exploits give a shell, not Meterpreter. Use sessions -u 1 to upgrade|
@@ -2783,30 +2784,30 @@ nc -zv 192.168.1.5 4444
 ## 10. Quick Troubleshooting Flowchart
 
 - **1. Payload runs but no session?**
-    ├── Check LHOST (is it your IP?)
-    ├── Check LPORT (is your firewall blocking it?)
-    ├── Check handler (is it running?)
-    └── Check network (can target reach you?)
+   - ├── Check LHOST (is it your IP?)
+   - ├── Check LPORT (is your firewall blocking it?)
+   - ├── Check handler (is it running?)
+   - └── Check network (can target reach you?)
 
 - **2. Exploit fails?**
-    ├── Check RHOSTS (typo? correct target?)
-    ├── Check RPORT (is service running?)
-    ├── Check target type (`show targets`)
-    ├── Check if target is patched
-    └── Try `check` before `run`
+   - ├── Check RHOSTS (typo? correct target?)
+   - ├── Check RPORT (is service running?)
+   - ├── Check target type (`show targets`)
+   - ├── Check if target is patched
+   - └── Try `check` before `run`
 
 - **3. Meterpreter fails?**
-    ├── `getuid` -> check current user
-    ├── `sysinfo` -> check OS and architecture
-    ├── Migrate to a stable process
-    ├── Use `getsystem` for privileges
-    └── Load `kiwi` for credentials
+   - ├── `getuid` -> check current user
+   - ├── `sysinfo` -> check OS and architecture
+   - ├── Migrate to a stable process
+   - ├── Use `getsystem` for privileges
+   - └── Load `kiwi` for credentials
 
 - **4. Database not working?**
-    ├── `sudo systemctl start postgresql`
-    ├── `msfconsole -d`
-    ├── `db_status`
-    └── `workspace` to verify workspace
+   - ├── `sudo systemctl start postgresql`
+   - ├── `msfconsole -d`
+   - ├── `db_status`
+   - └── `workspace` to verify workspace
 
 
 ## Troubleshooting Cheat Sheet
