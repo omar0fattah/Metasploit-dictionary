@@ -1,6 +1,6 @@
 # Metasploit-dictionary
 A metasploit dictionary from beginner level the advanced level including most of the important commands to help you as a personal sheet 
-
+<a name="top"></a>
 > **⚠️ Legal Disclaimer**  
 > This guide is for **educational purposes only**. Metasploit is a powerful framework. Unauthorized use of these techniques against systems you do not own or have explicit permission to test is illegal. The author assumes no responsibility for misuse or damage caused by these commands. Know the laws where you live. Use responsibly.
 
@@ -153,7 +153,7 @@ A metasploit dictionary from beginner level the advanced level including most of
 |sessions -i 1   |        # Interact with it|
 |background   |           # Send session to the background when done|
 
-
+[🔝 Back to Top](#top)
 
 # 2. Payloads
 
